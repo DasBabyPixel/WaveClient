@@ -1,0 +1,7 @@
+{
+    main: "de.dasbabypixel.waveclient.module.core.CoreModule",
+    name: "WaveClient",
+    depends: [
+    	"wrappedLoader"
+    ]
+}
