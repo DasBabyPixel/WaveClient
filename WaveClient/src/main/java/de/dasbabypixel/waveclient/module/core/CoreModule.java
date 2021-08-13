@@ -1,29 +1,13 @@
 package de.dasbabypixel.waveclient.module.core;
 
-import java.lang.reflect.Constructor;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.util.Collection;
-import java.util.stream.Collectors;
 
-import org.lwjgl.input.Keyboard;
-
-import de.dasbabypixel.waveclient.module.ModuleClassLoader;
 import de.dasbabypixel.waveclient.module.core.gui.MainMenuGui;
-import de.dasbabypixel.waveclient.module.core.gui.ModulesGui;
-import de.dasbabypixel.waveclient.module.core.gui.api.ModuleGui;
-import de.dasbabypixel.waveclient.module.core.keybind.Keybind;
-import de.dasbabypixel.waveclient.module.core.listener.ESPListener;
 import de.dasbabypixel.waveclient.module.core.listener.GuiUpdateListener;
 import de.dasbabypixel.waveclient.module.core.listener.KeybindUpdateListener;
-import de.dasbabypixel.waveclient.module.core.module.Module;
-import de.dasbabypixel.waveclient.module.core.render.font.WaveFont;
-import de.dasbabypixel.waveclient.module.core.render.image.Images;
-import de.dasbabypixel.waveclient.module.core.resource.IResourcePack;
-import de.dasbabypixel.waveclient.module.core.resource.ModuleResourcePack;
-import de.dasbabypixel.waveclient.module.core.resource.ResourceManager;
-import de.dasbabypixel.waveclient.module.core.resource.texture.TextureManager;
+import de.dasbabypixel.waveclient.module.core.util.Keybind;
 import de.dasbabypixel.waveclient.networking.common.ConnectionData;
 import de.dasbabypixel.waveclient.updater.CustomServerUpdater;
 import de.dasbabypixel.waveclient.updater.Updater;
@@ -34,18 +18,17 @@ import de.dasbabypixel.waveclient.updater.client.connection.LoginClientConnectio
 import de.dasbabypixel.waveclient.updater.client.connection.LoginData;
 import de.dasbabypixel.waveclient.updater.client.connection.SuccessLoginHandler;
 import de.dasbabypixel.waveclient.updater.relocation.netty.handler.ssl.SslContextBuilder;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
+import de.dasbabypixel.waveclient.wrappedloader.api.WaveClientAPI;
+import de.dasbabypixel.waveclient.wrappedloader.api.resource.ModuleResourcePack;
+import de.dasbabypixel.waveclient.wrappedloader.api.resource.ResourcePack;
+import de.dasbabypixel.waveclient.wrappedloader.api.util.Keyboard;
 
 public class CoreModule extends de.dasbabypixel.waveclient.module.Module {
 
 	private static CoreModule instance;
 	private GuiUpdateListener guiUpdateListener;
 	private KeybindUpdateListener keybindUpdateListener;
-	private ESPListener espListener;
-	private ModuleGui.Listener moduleGuiListener;
-	private IResourcePack resourcePack;
-//	private DeprecatedResourcePack resourcePack;
+	private ResourcePack resourcePack;
 
 	public CoreModule() {
 		super();
@@ -54,16 +37,8 @@ public class CoreModule extends de.dasbabypixel.waveclient.module.Module {
 
 	@Override
 	public void onDisableAsync() {
-
-		Module.ModuleFile.save();
 		this.keybindUpdateListener.unregister();
 		this.guiUpdateListener.unregister();
-		this.espListener.unregister();
-		this.moduleGuiListener.unregister();
-
-		ResourceManager.getInstance().removeResourcePack(resourcePack);
-		TextureManager.getInstance().close();
-		WaveFont.unloadFonts();
 	}
 
 	@Override
@@ -72,40 +47,20 @@ public class CoreModule extends de.dasbabypixel.waveclient.module.Module {
 
 	@Override
 	public void onEnableAsync() {
+		this.resourcePack = new ModuleResourcePack(this);
+		WaveClientAPI.getInstance().getResourceManager().addResourcePack(resourcePack);
 		this.keybindUpdateListener = new KeybindUpdateListener();
 		this.guiUpdateListener = new GuiUpdateListener();
-		this.espListener = new ESPListener();
-		this.moduleGuiListener = new ModuleGui.Listener();
 		try {
-			System.out.println("aasdadhbfoidsfbakfigzbaoirgbroia oivh srivb");
-
-			System.out.println("aasdadhbfoidsfbakfigzbaoirgbroia oivh srivb");
 			System.out.println("aasdadhbfoidsfbakfigzbaoirgbroia oivh srivb");
 			this.keybindUpdateListener.register();
 			this.guiUpdateListener.register();
-			this.espListener.register();
-			this.moduleGuiListener.register();
-			this.resourcePack = new ModuleResourcePack(this);
-			ResourceManager.load();
-			ResourceManager.getInstance().addResourcePack(resourcePack);
-			TextureManager.load();
-			WaveFont.loadFonts();
-			Images.loadImages();
-
-			Keybind keybind = new Keybind(this, "gui.modules", Keyboard.KEY_L);
-			keybind.registerHandler(new Keybind.KeybindHandler(bind -> {
-				if (Minecraft.getMinecraft().currentScreen == null)
-					Minecraft.getMinecraft().displayGuiScreen(new ModulesGui());
-			}, Keybind.KeybindHandler.Type.ON_PRESS));
 
 			new Keybind(this, "mainmenu", Keyboard.KEY_O).registerHandler(new Keybind.KeybindHandler(bind -> {
-				if (Minecraft.getMinecraft().currentScreen == null)
-					Minecraft.getMinecraft().displayGuiScreen(new MainMenuGui());
+				if (WaveClientAPI.getInstance().getMinecraft().getCurrentScreen() == null) {
+					WaveClientAPI.getInstance().getMinecraft().displayGuiScreen(new MainMenuGui());
+				}
 			}, Keybind.KeybindHandler.Type.ON_PRESS));
-
-			Module.ModuleFile.load();
-
-			Module.root().addChild("esp", () -> new Module("esp"));
 
 		} catch (Throwable ex) {
 			ex.printStackTrace();
@@ -152,55 +107,34 @@ public class CoreModule extends de.dasbabypixel.waveclient.module.Module {
 
 	@Override
 	public void onEnableSync() {
-//		DeprecatedImages.load(this.resourcePack);
-		recreateGuiScreen();
+//		recreateGuiScreen();
 	}
 
-	private void recreateGuiScreen() {
-		GuiScreen guiScreen = Minecraft.getMinecraft().currentScreen;
-		if (guiScreen != null) {
-			Class<?> screenClass = guiScreen.getClass();
-			ModuleClassLoader mcl = this.getClassLoader();
-			if (mcl == null) {
-				return;
-			}
-			Collection<String> classNames = mcl.classes.stream().map(Class::getName).collect(Collectors.toList());
-			if (classNames.contains(screenClass.getName())) {
-				try {
-					Class<?> clazz = mcl.classes.stream()
-							.filter(c -> c.getName().equals(screenClass.getName()))
-							.findAny()
-							.orElse(null);
-					if (clazz == null) {
-						getLogger().warn("Missing GuiScreen class(" + screenClass.getName() + ") -> Closing screen");
-						Minecraft.getMinecraft().displayGuiScreen(null);
-						return;
-					}
-					Constructor<?> cons = null;
-					try {
-						cons = clazz.getConstructor();
-					} catch (Exception e) {
-						getLogger().warn("Missing GuiScreen Constructor: Please create an empty Constructor for Class: "
-								+ clazz.getName());
-						Minecraft.getMinecraft().displayGuiScreen(null);
-						return;
-					}
-					cons.setAccessible(true);
-					Object oscreen = cons.newInstance();
-					if (!(oscreen instanceof GuiScreen)) {
-						getLogger().warn("New GuiScreen Class does not extend GuiScreen: " + clazz.getName());
-						Minecraft.getMinecraft().displayGuiScreen(null);
-						return;
-					}
-					GuiScreen screen = (GuiScreen) oscreen;
-					Minecraft.getMinecraft().displayGuiScreen(screen);
-					getLogger().info("Recreated GuiScreen! " + clazz.getName());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
+	/*
+	 * private void recreateGuiScreen() { GuiScreen guiScreen =
+	 * Minecraft.getMinecraft().currentScreen; if (guiScreen != null) { Class<?>
+	 * screenClass = guiScreen.getClass(); ModuleClassLoader mcl =
+	 * this.getClassLoader(); if (mcl == null) { return; } Collection<String>
+	 * classNames =
+	 * mcl.classes.stream().map(Class::getName).collect(Collectors.toList()); if
+	 * (classNames.contains(screenClass.getName())) { try { Class<?> clazz =
+	 * mcl.classes.stream() .filter(c -> c.getName().equals(screenClass.getName()))
+	 * .findAny() .orElse(null); if (clazz == null) {
+	 * getLogger().warn("Missing GuiScreen class(" + screenClass.getName() +
+	 * ") -> Closing screen"); Minecraft.getMinecraft().displayGuiScreen(null);
+	 * return; } Constructor<?> cons = null; try { cons = clazz.getConstructor(); }
+	 * catch (Exception e) { getLogger().
+	 * warn("Missing GuiScreen Constructor: Please create an empty Constructor for Class: "
+	 * + clazz.getName()); Minecraft.getMinecraft().displayGuiScreen(null); return;
+	 * } cons.setAccessible(true); Object oscreen = cons.newInstance(); if
+	 * (!(oscreen instanceof GuiScreen)) {
+	 * getLogger().warn("New GuiScreen Class does not extend GuiScreen: " +
+	 * clazz.getName()); Minecraft.getMinecraft().displayGuiScreen(null); return; }
+	 * GuiScreen screen = (GuiScreen) oscreen;
+	 * Minecraft.getMinecraft().displayGuiScreen(screen);
+	 * getLogger().info("Recreated GuiScreen! " + clazz.getName()); } catch
+	 * (Exception e) { e.printStackTrace(); } } } }
+	 */
 
 	public static CoreModule getInstance() {
 		return instance;

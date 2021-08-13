@@ -50,7 +50,7 @@ compileJava.options.encoding = "UTF-8"
 
 dependencies {
 
-	implementation fileTree('C:\Users\Lorenz\Documents\Forge Modding\git\WaveClient wrappedLoader\WaveClient wrappedLoader\build\libs')
+	implementation fileTree('C:/Users/Lorenz/Documents/Forge Modding/git/WaveClient wrappedLoader/WaveClient wrappedLoader/build/libs')
 	
     // you may put jars on which you depend on in ./libs
     // or you may define them like so..

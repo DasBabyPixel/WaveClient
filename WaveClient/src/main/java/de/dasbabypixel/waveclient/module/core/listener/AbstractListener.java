@@ -1,14 +1,14 @@
 package de.dasbabypixel.waveclient.module.core.listener;
 
-import de.dasbabypixel.waveclient.module.core.CoreModule;
+import de.dasbabypixel.waveclient.wrappedloader.api.WaveClientAPI;
 
 public abstract class AbstractListener {
 
 	public void register() {
-		CoreModule.getInstance().getEventManager().register(this);
+		WaveClientAPI.getInstance().getEventManager().registerListener(this);
 	}
 
 	public void unregister() {
-		CoreModule.getInstance().getEventManager().unregister(this);
+		WaveClientAPI.getInstance().getEventManager().unregisterListener(this);
 	}
 }

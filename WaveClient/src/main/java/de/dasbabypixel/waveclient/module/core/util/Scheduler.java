@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 import de.dasbabypixel.waveclient.module.core.listener.BaseListener;
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
+import de.dasbabypixel.waveclient.wrappedloader.api.event.events.tick.TickEvent;
 
 public class Scheduler {
 
@@ -99,9 +99,9 @@ public class Scheduler {
 		tasks.add(task);
 	}
 
-	private static class Listener extends BaseListener<ClientTickEvent> {
+	private static class Listener extends BaseListener<TickEvent.Client> {
 		public Listener(Scheduler scheduler) {
-			super(ClientTickEvent.class, event -> {
+			super(TickEvent.Client.class, event -> {
 				scheduler.processSync();
 			});
 		}

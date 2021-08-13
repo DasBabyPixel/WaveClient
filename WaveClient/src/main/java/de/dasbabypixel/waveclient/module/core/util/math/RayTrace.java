@@ -33,8 +33,8 @@ public class RayTrace {
 	}
 
 	// get all postions on a raytrace
-	public ArrayList<Vector> traverse(double blocksAway, double accuracy) {
-		ArrayList<Vector> positions = new ArrayList<>();
+	public List<Vector> traverse(double blocksAway, double accuracy) {
+		List<Vector> positions = new ArrayList<>();
 		for (double d = 0; d <= blocksAway; d += accuracy) {
 			positions.add(getPostion(d));
 		}
@@ -63,7 +63,7 @@ public class RayTrace {
 
 	// intersection detection for current raytrace with return
 	public Vector positionOfIntersection(Vector min, Vector max, double blocksAway, double accuracy) {
-		ArrayList<Vector> positions = traverse(blocksAway, accuracy);
+		List<Vector> positions = traverse(blocksAway, accuracy);
 		for (Vector position : positions) {
 			if (intersects(position, min, max)) {
 				return position;
@@ -74,7 +74,7 @@ public class RayTrace {
 
 	// intersection detection for current raytrace
 	public boolean intersects(Vector min, Vector max, double blocksAway, double accuracy) {
-		ArrayList<Vector> positions = traverse(blocksAway, accuracy);
+		List<Vector> positions = traverse(blocksAway, accuracy);
 		for (Vector position : positions) {
 			if (intersects(position, min, max)) {
 				return true;

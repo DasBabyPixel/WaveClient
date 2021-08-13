@@ -2,6 +2,8 @@ package de.dasbabypixel.waveclient.module.core.util.color;
 
 import java.util.Random;
 
+import de.dasbabypixel.waveclient.wrappedloader.api.util.Color;
+
 public class RainbowColor extends Color {
 
 	protected float speed = 1;
